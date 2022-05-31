@@ -16,58 +16,74 @@ namespace Chess
         Process Processo;
         Boolean Check = false;
         Boolean Bianco = false;
+        Boolean MessaggioDiVittoria = false;
         List<String> MosseFatte = new List<String>();
         String currentFen = "";
+        int Profondita = 30;
         public SchermataDiGioco()
         {
-            InitializeComponent();
-            PopolamentoPosizioni();
-            PopolamentoScacchiera();
-            var info = new ProcessStartInfo("C:\\Users\\Jacopo\\source\\repos\\Chess\\Chess\\Stockfish\\stockfish.exe");
-            info.UseShellExecute = false;
-            info.RedirectStandardInput = true;
-            info.RedirectStandardOutput = true;
-            info.CreateNoWindow = true;
-            if (info != null)
+            try
             {
-                this.Processo = Process.Start(info);
-                if (this.Processo != null)
+                InitializeComponent();
+                PopolamentoPosizioni();
+                PopolamentoScacchiera();
+                var info = new ProcessStartInfo("C:\\Users\\Jacopo\\source\\repos\\Chess\\Chess\\Stockfish\\stockfish.exe");
+                info.UseShellExecute = false;
+                info.RedirectStandardInput = true;
+                info.RedirectStandardOutput = true;
+                info.CreateNoWindow = true;
+                if (info != null)
                 {
-                    Processo.OutputDataReceived += UpdateText;
-                    Processo.BeginOutputReadLine();
+                    this.Processo = Process.Start(info);
+                    if (this.Processo != null)
+                    {
+                        Processo.OutputDataReceived += UpdateText;
+                        Processo.BeginOutputReadLine();
+                    }
                 }
+                checkUpdate.Enabled = true;
+                streamWriter = Processo.StandardInput;
+                foreach (var p in Posizioni)
+                {
+                    p.Value.Click += SetMove;
+                }
+                profondita.Value = Profondita;
+                valore.Text = "" + Profondita;
             }
-            checkUpdate.Enabled = true;
-            streamWriter = Processo.StandardInput;
-            foreach (var p in Posizioni)
+            catch (Exception ex)
             {
-                p.Value.Click += SetMove;
+                MessageBox.Show(ex.Message);
             }
         }
-
         private void SetMove(object? sender, EventArgs e)
         {
-            if (Move != null)
+            try
             {
-                if (Move.Count() == 2)
+                if (Move != null)
                 {
-                    Move += ((PictureBox)sender).Name;
-                    MosseFatte.Add(Move);
-                    nuovaMossa();
-                    Move = "";
-                }
-                else if (Move.Count() == 4)
-                {
-                    Move = "";
-                }
-                else
-                {
-                    Move = ((PictureBox)sender).Name;
-                    ((PictureBox)sender).BackColor = Color.LightPink;
+                    if (Move.Count() == 2)
+                    {
+                        Move += ((PictureBox)sender).Name;
+                        MosseFatte.Add(Move);
+                        nuovaMossa();
+                        Move = "";
+                    }
+                    else if (Move.Count() == 4)
+                    {
+                        Move = "";
+                    }
+                    else
+                    {
+                        Move = ((PictureBox)sender).Name;
+                        ((PictureBox)sender).BackColor = Color.LightPink;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
-
         private void SchermataDiGioco_Load(object sender, EventArgs e)
         {
         }
@@ -80,12 +96,14 @@ namespace Chess
         }
         private void newGameToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            streamWriter.WriteLine("stop");
             streamWriter.WriteLine("ucinewgame");
             streamWriter.WriteLine("position startpos");
             streamWriter.WriteLine("d");
             MosseFatte.Clear();
             currentFen = "";
             startToolStripMenuItem.Visible = true;
+            bot = false;
         }
         private void nuovaMossa()
         {
@@ -96,6 +114,14 @@ namespace Chess
             }
             streamWriter.WriteLine(comando);
             streamWriter.WriteLine("d");
+            if (Bianco)
+            {
+                Bianco = false;
+            }
+            else
+            {
+                Bianco = true;
+            }
         }
         private void UpdateText(object sender, DataReceivedEventArgs e)
         {
@@ -111,7 +137,7 @@ namespace Chess
                             BestMove = "Best Move: " + miglioreMossa;
                             MosseFatte.Add(miglioreMossa);
                             nuovaMossa();
-                            streamWriter.WriteLine("go depth 30");
+                            streamWriter.WriteLine("go depth " + Profondita);
                         }
                         else if (e.Data.Contains("seldepth"))
                         {
@@ -153,11 +179,16 @@ namespace Chess
                             var split = e.Data.Split(" ")[2];
                             if (Check && split.Equals("0"))
                             {
-                                if (!Bianco)
-                                    MessageBox.Show("Ha vinto il Bianco");
-                                else
-                                    MessageBox.Show("Ha vinto il Nero");
+                                if (!MessaggioDiVittoria)
+                                {
+                                    if (!Bianco)
+                                        MessageBox.Show("Ha vinto il Bianco");
+                                    else
+                                        MessageBox.Show("Ha vinto il Nero");
+                                    MessaggioDiVittoria = true;
+                                }
                                 bot = false;
+                                streamWriter.WriteLine("stop");
                             }
                         }
                     }
@@ -210,10 +241,14 @@ namespace Chess
                             var split = e.Data.Split(" ")[2];
                             if (Check && split.Equals("0"))
                             {
-                                if (!Bianco)
-                                    MessageBox.Show("Ha vinto il Bianco");
-                                else
-                                    MessageBox.Show("Ha vinto il Nero");
+                                if (!MessaggioDiVittoria)
+                                {
+                                    if (!Bianco)
+                                        MessageBox.Show("Ha vinto il Bianco");
+                                    else
+                                        MessageBox.Show("Ha vinto il Nero");
+                                    MessaggioDiVittoria = true;
+                                }
                             }
                         }
                     }
@@ -230,113 +265,120 @@ namespace Chess
         }
         private void SetpiecePositionFromFen(String fen)
         {
-            PuliziaIcone();
-            PopolamentoScacchiera();
-            int riga = 8;
-            var righe = fen.Split("/");
-            foreach (var r in righe)
+            try
             {
-                int colonna = 1;
-                foreach (var c in r)
+                PuliziaIcone();
+                PopolamentoScacchiera();
+                int riga = 8;
+                var righe = fen.Split("/");
+                foreach (var r in righe)
                 {
-                    if (!char.IsDigit(c))
+                    int colonna = 1;
+                    foreach (var c in r)
                     {
-                        var posizione = "";
-                        switch (colonna)
+                        if (!char.IsDigit(c))
                         {
-                            case 1:
-                                posizione = "a" + riga;
-                                break;
-                            case 2:
-                                posizione = "b" + riga;
-                                break;
-                            case 3:
-                                posizione = "c" + riga;
-                                break;
-                            case 4:
-                                posizione = "d" + riga;
-                                break;
-                            case 5:
-                                posizione = "e" + riga;
-                                break;
-                            case 6:
-                                posizione = "f" + riga;
-                                break;
-                            case 7:
-                                posizione = "g" + riga;
-                                break;
-                            case 8:
-                                posizione = "h" + riga;
-                                break;
-                        }
+                            var posizione = "";
+                            switch (colonna)
+                            {
+                                case 1:
+                                    posizione = "a" + riga;
+                                    break;
+                                case 2:
+                                    posizione = "b" + riga;
+                                    break;
+                                case 3:
+                                    posizione = "c" + riga;
+                                    break;
+                                case 4:
+                                    posizione = "d" + riga;
+                                    break;
+                                case 5:
+                                    posizione = "e" + riga;
+                                    break;
+                                case 6:
+                                    posizione = "f" + riga;
+                                    break;
+                                case 7:
+                                    posizione = "g" + riga;
+                                    break;
+                                case 8:
+                                    posizione = "h" + riga;
+                                    break;
+                            }
 
-                        var path = "";
-                        Pezzo pezzo = null;
-                        switch (c)
-                        {
-                            case 'r':
-                                pezzo = new TorreNero();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'n':
-                                pezzo = new CavaliereNero();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'b':
-                                pezzo = new AlfiereNero();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'q':
-                                pezzo = new ReginaNera();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'k':
-                                pezzo = new ReNero();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'p':
-                                pezzo = new PedoneNero();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'R':
-                                pezzo = new TorreBianca();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'N':
-                                pezzo = new CavaliereBianco();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'B':
-                                pezzo = new AlfiereBianco();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'Q':
-                                pezzo = new ReginaBianca();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'K':
-                                pezzo = new ReBianco();
-                                path = pezzo.IcoPath;
-                                break;
-                            case 'P':
-                                pezzo = new PedoneBianco();
-                                path = pezzo.IcoPath;
-                                break;
+                            var path = "";
+                            Pezzo pezzo = null;
+                            switch (c)
+                            {
+                                case 'r':
+                                    pezzo = new TorreNero();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'n':
+                                    pezzo = new CavaliereNero();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'b':
+                                    pezzo = new AlfiereNero();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'q':
+                                    pezzo = new ReginaNera();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'k':
+                                    pezzo = new ReNero();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'p':
+                                    pezzo = new PedoneNero();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'R':
+                                    pezzo = new TorreBianca();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'N':
+                                    pezzo = new CavaliereBianco();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'B':
+                                    pezzo = new AlfiereBianco();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'Q':
+                                    pezzo = new ReginaBianca();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'K':
+                                    pezzo = new ReBianco();
+                                    path = pezzo.IcoPath;
+                                    break;
+                                case 'P':
+                                    pezzo = new PedoneBianco();
+                                    path = pezzo.IcoPath;
+                                    break;
+                            }
+                            Posizioni[posizione].Image = Image.FromFile(path);
+                            Scacchiera[posizione] = pezzo;
+                            colonna++;
                         }
-                        Posizioni[posizione].Image = Image.FromFile(path);
-                        Scacchiera[posizione] = pezzo;
-                        colonna++;
+                        else
+                        {
+                            colonna += int.Parse("" + c);
+                        }
+                        if (colonna > 8)
+                        {
+                            break;
+                        }
                     }
-                    else
-                    {
-                        colonna += int.Parse("" + c);
-                    }
-                    if (colonna > 8)
-                    {
-                        break;
-                    }
+                    riga--;
                 }
-                riga--;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
         private List<string> GetMosse(String s)
@@ -365,10 +407,11 @@ namespace Chess
             {
                 MossaSelezionata.Text = BestMove;
             }
-        }
-        private void startToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            streamWriter.WriteLine("go depth 30");
+            if (listBox1.Items.Count != MosseFatte.Count)
+            {
+                listBox1.Items.Clear();
+                listBox1.Items.AddRange(MosseFatte.ToArray());
+            }
         }
         private void PopolamentoPosizioni()
         {
@@ -584,10 +627,33 @@ namespace Chess
         {
             Clipboard.SetText(GetFenFromChessboard());
         }
-        private void bOTPLAYALONEToolStripMenuItem_Click(object sender, EventArgs e)
+        private void bOTPLAYALONEToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             bot = true;
-            streamWriter.WriteLine("go depth 30");
+            streamWriter.WriteLine("go depth " + Profondita);
+        }
+        private void stopToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bot = false;
+            streamWriter.WriteLine("stop");
+        }
+        private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index % 2 != 0)
+            {
+                BackColor = Color.Black;
+                ForeColor = Color.White;
+            }
+            else
+            {
+                BackColor = Color.White;
+                ForeColor = Color.Black;
+            }
+        }
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            Profondita = profondita.Value;
+            valore.Text = "" + Profondita;
         }
     }
 }

@@ -100,13 +100,16 @@
             this.loadGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.bOTPLAYALONEToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.getFenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Mosse = new System.Windows.Forms.Label();
             this.MossaSelezionata = new System.Windows.Forms.Label();
             this.checkUpdate = new System.Windows.Forms.Timer(this.components);
-            this.bOTPLAYALONEToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.testoProfondita = new System.Windows.Forms.Label();
+            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.profondita = new System.Windows.Forms.TrackBar();
+            this.valore = new System.Windows.Forms.Label();
             this.scacchiera.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.h1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.g1)).BeginInit();
@@ -173,10 +176,14 @@
             ((System.ComponentModel.ISupportInitialize)(this.a8)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.a1)).BeginInit();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.profondita)).BeginInit();
             this.SuspendLayout();
             // 
             // scacchiera
             // 
+            this.scacchiera.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.scacchiera.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.scacchiera.ColumnCount = 8;
             this.scacchiera.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
@@ -1105,13 +1112,10 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.gameToolStripMenuItem,
             this.startToolStripMenuItem,
-            this.getFenToolStripMenuItem,
-            this.bOTPLAYALONEToolStripMenuItem,
-            this.toolStripMenuItem1,
-            this.toolStripMenuItem2});
+            this.getFenToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(532, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(732, 28);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -1146,11 +1150,27 @@
             // 
             // startToolStripMenuItem
             // 
+            this.startToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.bOTPLAYALONEToolStripMenuItem1,
+            this.stopToolStripMenuItem});
             this.startToolStripMenuItem.Name = "startToolStripMenuItem";
             this.startToolStripMenuItem.Size = new System.Drawing.Size(54, 24);
             this.startToolStripMenuItem.Text = "Start";
             this.startToolStripMenuItem.Visible = false;
-            this.startToolStripMenuItem.Click += new System.EventHandler(this.startToolStripMenuItem_Click);
+            // 
+            // bOTPLAYALONEToolStripMenuItem1
+            // 
+            this.bOTPLAYALONEToolStripMenuItem1.Name = "bOTPLAYALONEToolStripMenuItem1";
+            this.bOTPLAYALONEToolStripMenuItem1.Size = new System.Drawing.Size(205, 26);
+            this.bOTPLAYALONEToolStripMenuItem1.Text = "BOT PLAY ALONE";
+            this.bOTPLAYALONEToolStripMenuItem1.Click += new System.EventHandler(this.bOTPLAYALONEToolStripMenuItem1_Click);
+            // 
+            // stopToolStripMenuItem
+            // 
+            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
+            this.stopToolStripMenuItem.Size = new System.Drawing.Size(205, 26);
+            this.stopToolStripMenuItem.Text = "Stop";
+            this.stopToolStripMenuItem.Click += new System.EventHandler(this.stopToolStripMenuItem_Click);
             // 
             // getFenToolStripMenuItem
             // 
@@ -1161,9 +1181,7 @@
             // 
             // Mosse
             // 
-            this.Mosse.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.Mosse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.Mosse.AutoSize = true;
             this.Mosse.Location = new System.Drawing.Point(12, 565);
             this.Mosse.Name = "Mosse";
@@ -1173,9 +1191,7 @@
             // 
             // MossaSelezionata
             // 
-            this.MossaSelezionata.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.MossaSelezionata.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.MossaSelezionata.AutoSize = true;
             this.MossaSelezionata.Location = new System.Drawing.Point(12, 602);
             this.MossaSelezionata.Name = "MossaSelezionata";
@@ -1185,31 +1201,62 @@
             // 
             // checkUpdate
             // 
-            this.checkUpdate.Interval = 1000;
+            this.checkUpdate.Interval = 3000;
             this.checkUpdate.Tick += new System.EventHandler(this.checkUpdate_Tick);
             // 
-            // bOTPLAYALONEToolStripMenuItem
+            // testoProfondita
             // 
-            this.bOTPLAYALONEToolStripMenuItem.Name = "bOTPLAYALONEToolStripMenuItem";
-            this.bOTPLAYALONEToolStripMenuItem.Size = new System.Drawing.Size(136, 24);
-            this.bOTPLAYALONEToolStripMenuItem.Text = "BOT PLAY ALONE";
-            this.bOTPLAYALONEToolStripMenuItem.Click += new System.EventHandler(this.bOTPLAYALONEToolStripMenuItem_Click);
+            this.testoProfondita.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.testoProfondita.AutoSize = true;
+            this.testoProfondita.Location = new System.Drawing.Point(461, 635);
+            this.testoProfondita.Name = "testoProfondita";
+            this.testoProfondita.Size = new System.Drawing.Size(86, 20);
+            this.testoProfondita.TabIndex = 6;
+            this.testoProfondita.Text = "Profondita: ";
             // 
-            // toolStripMenuItem1
+            // listBox1
             // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(152, 24);
+            this.listBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.listBox1.FormattingEnabled = true;
+            this.listBox1.ItemHeight = 20;
+            this.listBox1.Location = new System.Drawing.Point(553, 50);
+            this.listBox1.Name = "listBox1";
+            this.listBox1.Size = new System.Drawing.Size(150, 504);
+            this.listBox1.TabIndex = 4;
+            this.listBox1.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.listBox1_DrawItem);
             // 
-            // toolStripMenuItem2
+            // profondita
             // 
-            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(14, 24);
+            this.profondita.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.profondita.Location = new System.Drawing.Point(553, 635);
+            this.profondita.Maximum = 30;
+            this.profondita.Minimum = 10;
+            this.profondita.Name = "profondita";
+            this.profondita.Size = new System.Drawing.Size(150, 56);
+            this.profondita.TabIndex = 7;
+            this.profondita.Value = 10;
+            this.profondita.Scroll += new System.EventHandler(this.trackBar1_Scroll);
+            // 
+            // valore
+            // 
+            this.valore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.valore.AutoSize = true;
+            this.valore.Location = new System.Drawing.Point(497, 671);
+            this.valore.Name = "valore";
+            this.valore.Size = new System.Drawing.Size(50, 20);
+            this.valore.TabIndex = 8;
+            this.valore.Text = "label1";
             // 
             // SchermataDiGioco
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(532, 653);
+            this.ClientSize = new System.Drawing.Size(732, 703);
+            this.Controls.Add(this.valore);
+            this.Controls.Add(this.profondita);
+            this.Controls.Add(this.testoProfondita);
+            this.Controls.Add(this.listBox1);
             this.Controls.Add(this.MossaSelezionata);
             this.Controls.Add(this.Mosse);
             this.Controls.Add(this.scacchiera);
@@ -1285,6 +1332,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.a1)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.profondita)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1367,8 +1415,11 @@
         private System.Windows.Forms.Timer checkUpdate;
         private ToolStripMenuItem startToolStripMenuItem;
         private ToolStripMenuItem getFenToolStripMenuItem;
-        private ToolStripMenuItem bOTPLAYALONEToolStripMenuItem;
-        private ToolStripMenuItem toolStripMenuItem1;
-        private ToolStripMenuItem toolStripMenuItem2;
+        private ToolStripMenuItem bOTPLAYALONEToolStripMenuItem1;
+        private ToolStripMenuItem stopToolStripMenuItem;
+        private Label testoProfondita;
+        private ListBox listBox1;
+        private TrackBar profondita;
+        private Label valore;
     }
 }
