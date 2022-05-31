@@ -125,142 +125,164 @@ namespace Chess
         }
         private void UpdateText(object sender, DataReceivedEventArgs e)
         {
-            if (e != null)
+            try
             {
-                if (e.Data != null)
+                if (e != null)
                 {
-                    if (bot)
+                    if (e.Data != null)
                     {
-                        if (e.Data.Contains("bestmove"))
+                        if (bot)
                         {
-                            var miglioreMossa = GetBestMove(e.Data);
-                            BestMove = "Best Move: " + miglioreMossa;
-                            MosseFatte.Add(miglioreMossa);
-                            nuovaMossa();
-                            streamWriter.WriteLine("go depth " + Profondita);
-                        }
-                        else if (e.Data.Contains("seldepth"))
-                        {
-                            var listaMosse = GetMosse(e.Data);
-                            String testo = "Profondita: " + GetProfondita(e.Data) + "\nMosse: ";
-                            foreach (var mosse in listaMosse)
+                            if (e.Data.Contains("bestmove"))
                             {
-                                testo += mosse + "   ";
+                                var miglioreMossa = GetBestMove(e.Data);
+                                BestMove = "Best Move: " + miglioreMossa;
+                                MosseFatte.Add(miglioreMossa);
+                                nuovaMossa();
+                                streamWriter.WriteLine("go depth " + Profondita);
                             }
-                            TestoConsole = testo;
-                        }
-                        else if (e.Data.Contains("Fen"))
-                        {
-                            var tempFen = GetFenPosition(e.Data);
-                            if (!tempFen.Equals(currentFen))
+                            else if (e.Data.Contains("seldepth"))
                             {
-                                SetpiecePositionFromFen(tempFen);
-                                currentFen = tempFen;
-                            }
-                            else
-                            {
-                                MosseFatte.Remove(MosseFatte.Last());
-                            }
-                        }
-                        else if (e.Data.Contains("Checkers"))
-                        {
-                            var checkt = e.Data.Split(" ");
-                            if (checkt.Length > 1)
-                            {
-                                if (!checkt[1].Equals(""))
+                                var listaMosse = GetMosse(e.Data);
+                                String testo = "Profondita: " + GetProfondita(e.Data) + "\nMosse: ";
+                                foreach (var mosse in listaMosse)
                                 {
-                                    Check = true;
-                                    streamWriter.WriteLine("go perft 1");
+                                    testo += mosse + "   ";
+                                }
+                                TestoConsole = testo;
+                            }
+                            else if (e.Data.Contains("Fen"))
+                            {
+                                var tempFen = GetFenPosition(e.Data);
+                                if (!tempFen.Equals(currentFen))
+                                {
+                                    SetpiecePositionFromFen(tempFen);
+                                    currentFen = tempFen;
+                                }
+                                else
+                                {
+                                    MosseFatte.Remove(MosseFatte.Last());
                                 }
                             }
-                        }
-                        else if (e.Data.Contains("Nodes searched:"))
-                        {
-                            var split = e.Data.Split(" ")[2];
-                            if (Check && split.Equals("0"))
+                            else if (e.Data.Contains("Checkers"))
                             {
-                                if (!MessaggioDiVittoria)
+                                var checkt = e.Data.Split(" ");
+                                if (checkt.Length > 1)
                                 {
-                                    if (!Bianco)
-                                        MessageBox.Show("Ha vinto il Bianco");
-                                    else
-                                        MessageBox.Show("Ha vinto il Nero");
+                                    if (!checkt[1].Equals(""))
+                                    {
+                                        Check = true;
+                                        streamWriter.WriteLine("go perft 1");
+                                    }
+                                }
+                            }
+                            else if (e.Data.Contains("Nodes searched:"))
+                            {
+                                var split = e.Data.Split(" ")[2];
+                                if (Check && split.Equals("0"))
+                                {
+                                    if (!MessaggioDiVittoria)
+                                    {
+                                        if (!Bianco)
+                                            MessageBox.Show("Ha vinto il Bianco");
+                                        else
+                                            MessageBox.Show("Ha vinto il Nero");
+                                        MessaggioDiVittoria = true;
+                                    }
+                                    bot = false;
+                                    streamWriter.WriteLine("stop");
+                                }
+                            }
+                            if(MosseFatte.Count > 6)
+                            {
+                                var mosse = MosseFatte.TakeLast(6).ToList();
+                                if((mosse[0].Equals(mosse[2]) && mosse[2].Equals(mosse[4]))&&(mosse[1].Equals(mosse[3]) && mosse[3].Equals(mosse[5]))){
+
+                                    streamWriter.WriteLine("stop");
+                                    MessageBox.Show("Patta");
                                     MessaggioDiVittoria = true;
                                 }
-                                bot = false;
-                                streamWriter.WriteLine("stop");
                             }
                         }
-                    }
-                    else
-                    {
-                        if (e.Data.Contains("bestmove"))
+                        else
                         {
-                            var miglioreMossa = GetBestMove(e.Data);
-                            BestMove = "Best Move: " + miglioreMossa;
-                            MosseFatte.Add(miglioreMossa);
-                            nuovaMossa();
-                        }
-                        else if (e.Data.Contains("seldepth"))
-                        {
-                            var listaMosse = GetMosse(e.Data);
-                            String testo = "Profondita: " + GetProfondita(e.Data) + "\nMosse: ";
-                            foreach (var mosse in listaMosse)
+                            if (e.Data.Contains("bestmove"))
                             {
-                                testo += mosse + "   ";
+                                var miglioreMossa = GetBestMove(e.Data);
+                                BestMove = "Best Move: " + miglioreMossa;
+                                MosseFatte.Add(miglioreMossa);
+                                nuovaMossa();
                             }
-                            TestoConsole = testo;
-                        }
-                        else if (e.Data.Contains("Fen"))
-                        {
-                            var tempFen = GetFenPosition(e.Data);
-                            if (!tempFen.Equals(currentFen))
+                            else if (e.Data.Contains("seldepth"))
                             {
-                                SetpiecePositionFromFen(tempFen);
-                                currentFen = tempFen;
-                            }
-                            else
-                            {
-                                MosseFatte.Remove(MosseFatte.Last());
-                            }
-                        }
-                        else if (e.Data.Contains("Checkers"))
-                        {
-                            var checkt = e.Data.Split(" ");
-                            if (checkt.Length > 1)
-                            {
-                                if (!checkt[1].Equals(""))
+                                var listaMosse = GetMosse(e.Data);
+                                String testo = "Profondita: " + GetProfondita(e.Data) + "\nMosse: ";
+                                foreach (var mosse in listaMosse)
                                 {
-                                    Check = true;
-                                    streamWriter.WriteLine("go perft 1");
+                                    testo += mosse + "   ";
+                                }
+                                TestoConsole = testo;
+                            }
+                            else if (e.Data.Contains("Fen"))
+                            {
+                                var tempFen = GetFenPosition(e.Data);
+                                if (!tempFen.Equals(currentFen))
+                                {
+                                    SetpiecePositionFromFen(tempFen);
+                                    currentFen = tempFen;
+                                }
+                                else
+                                {
+                                    MosseFatte.Remove(MosseFatte.Last());
                                 }
                             }
-                        }
-                        else if (e.Data.Contains("Nodes searched:"))
-                        {
-                            var split = e.Data.Split(" ")[2];
-                            if (Check && split.Equals("0"))
+                            else if (e.Data.Contains("Checkers"))
                             {
-                                if (!MessaggioDiVittoria)
+                                var checkt = e.Data.Split(" ");
+                                if (checkt.Length > 1)
                                 {
-                                    if (!Bianco)
-                                        MessageBox.Show("Ha vinto il Bianco");
-                                    else
-                                        MessageBox.Show("Ha vinto il Nero");
-                                    MessaggioDiVittoria = true;
+                                    if (!checkt[1].Equals(""))
+                                    {
+                                        Check = true;
+                                        streamWriter.WriteLine("go perft 1");
+                                    }
+                                }
+                            }
+                            else if (e.Data.Contains("Nodes searched:"))
+                            {
+                                var split = e.Data.Split(" ")[2];
+                                if (Check && split.Equals("0"))
+                                {
+                                    if (!MessaggioDiVittoria)
+                                    {
+                                        if (!Bianco)
+                                            MessageBox.Show("Ha vinto il Bianco");
+                                        else
+                                            MessageBox.Show("Ha vinto il Nero");
+                                        MessaggioDiVittoria = true;
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            }catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
         private void PuliziaIcone()
         {
-            foreach (var p in Posizioni)
+            try
             {
-                p.Value.Image = null;
-                p.Value.BackColor = Color.Transparent;
+                foreach (var p in Posizioni)
+                {
+                    p.Value.Image = null;
+                    p.Value.BackColor = Color.Transparent;
+                }
+            }catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
         private void SetpiecePositionFromFen(String fen)
